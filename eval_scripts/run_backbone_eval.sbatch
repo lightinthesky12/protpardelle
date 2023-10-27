@@ -11,7 +11,7 @@
 source activate folding
 
 
-## expects MINLEN, MAXLEN, PERLEN, STEPLEN, SWEEP_NAME, MODEL_NAME, EPOCH
+## expects MINLEN, MAXLEN, PERLEN, STEPLEN, SWEEP_NAME
 for ARGUMENT in "$@"
 do
    KEY=$(echo $ARGUMENT | cut -f1 -d=)
@@ -29,12 +29,12 @@ else SWEEP_NAME="default";
 fi
 
 targetdir=/scratch/users/alexechu/protpardelle_paper/samples/${prefix}_${MINLEN}_${MAXLEN}_${SWEEP_NAME}
-modeldir=/scratch/users/alexechu/training_logs/recover/${MODEL_NAME}
-prefix=backbone_${MODEL_NAME}_${EPOCH}
+modelcheckpoint=/scratch/users/alexechu/protpardelle/checkpoints
+prefix=backbone_checkpoint
 
 
-echo "python draw_samples.py --modeldir ${modeldir} --modelepoch ${EPOCH} --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}"
-python draw_samples.py --modeldir ${modeldir} --modelepoch ${EPOCH} --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}
+echo "python draw_samples.py --model_checkpoint modelcheckpoint --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}"
+python draw_samples.py --model_checkpoint modelcheckpoint --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}
 
 echo "sbatch eval_scripts/sc.sbatch ${targetdir} backbone"
 sbatch eval_scripts/sc.sbatch ${targetdir} backbone
