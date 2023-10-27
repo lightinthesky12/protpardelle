@@ -1,0 +1,43 @@
+#!/bin/bash
+#SBATCH --time=0-12:00:00
+#SBATCH --mem=48G
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=8
+#SBATCH --partition=gpu,bioe
+#SBATCH --job-name=bb_eval
+#SBATCH --output=/scratch/users/alexechu/protpardelle/slurms/%j.out
+
+source activate folding
+
+
+## expects MINLEN, MAXLEN, PERLEN, STEPLEN, SWEEP_NAME, MODEL_NAME, EPOCH
+for ARGUMENT in "$@"
+do
+   KEY=$(echo $ARGUMENT | cut -f1 -d=)
+
+   KEY_LENGTH=${#KEY}
+   VALUE="${ARGUMENT:$KEY_LENGTH+1}"
+
+   export "$KEY"="$VALUE"
+done
+
+parampath=""
+if [ -z $SWEEP_NAME ];
+then parampath="--parampath ${SWEEP_NAME}.json";
+else SWEEP_NAME="default";
+fi
+
+targetdir=/scratch/users/alexechu/protpardelle_paper/samples/${prefix}_${MINLEN}_${MAXLEN}_${SWEEP_NAME}
+modeldir=/scratch/users/alexechu/training_logs/recover/${MODEL_NAME}
+prefix=backbone_${MODEL_NAME}_${EPOCH}
+
+
+echo "python draw_samples.py --modeldir ${modeldir} --modelepoch ${EPOCH} --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}"
+python draw_samples.py --modeldir ${modeldir} --modelepoch ${EPOCH} --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}
+
+echo "sbatch eval_scripts/sc.sbatch ${targetdir} backbone"
+sbatch eval_scripts/sc.sbatch ${targetdir} backbone
+
+echo "sbatch eval_scripts/nov.sbatch ${targetdir} False"
+sbatch eval_scripts/nov.sbatch ${targetdir} False
