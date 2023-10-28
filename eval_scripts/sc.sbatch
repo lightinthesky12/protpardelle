@@ -10,7 +10,7 @@
 #SBATCH --array=0-800:100%16
 #SBATCH --output=/scratch/users/alexechu/protpardelle/slurms/%j_sc.out
 
-source activate folding
+source activate delle
 
 targetdir=$1
 metric=$2

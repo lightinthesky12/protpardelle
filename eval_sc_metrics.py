@@ -14,8 +14,6 @@ from collections import defaultdict
 import statistics
 import os
 import argparse
-import omegafold
-from omegafold import pipeline as of_pipeline
 
 from evaluation import evaluate_sequence_design, predict_structures
 
@@ -25,18 +23,6 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 esmfold = EsmForProteinFolding.from_pretrained("facebook/esmfold_v1").to(device)
 esmfold.esm = esmfold.esm.half()
 tokenizer = AutoTokenizer.from_pretrained("facebook/esmfold_v1")
-
-# omegafold
-omfold = omegafold.OmegaFold(omegafold.make_config(1))
-state_dict = of_pipeline._load_weights(
-    "https://helixon.s3.amazonaws.com/release1.pt",
-    os.path.expanduser("~/.cache/omegafold_ckpt/model.pt"),
-)
-if "model" in state_dict:
-    state_dict = state_dict.pop("model")
-omfold.load_state_dict(state_dict)
-omfold.eval()
-omfold.to(device)
 
 
 # seq prediction from structure
