@@ -4,7 +4,7 @@
 #SBATCH -c 8
 #SBATCH --partition=possu,normal,owners
 #SBATCH --job-name=lc-div
-#SBATCH --array=0-7%1
+#SBATCH --array=0-800:100%1
 #SBATCH --output=/scratch/users/alexechu/protpardelle/slurms/%j_div.out
 
 
