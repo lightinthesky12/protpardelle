@@ -41,7 +41,6 @@ omfold.to(device)
 
 # seq prediction from structure
 mpnn = protein_mpnn.get_mpnn_model(
-    path_to_model_weights="/scratch/users/alexechu/ProteinMPNN/vanilla_model_weights",
     device=device,
 )
 

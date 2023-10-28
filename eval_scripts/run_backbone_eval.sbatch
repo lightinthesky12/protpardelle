@@ -8,7 +8,7 @@
 #SBATCH --job-name=bb_eval
 #SBATCH --output=/scratch/users/alexechu/protpardelle/slurms/%j.out
 
-source activate folding
+source activate delle
 
 
 ## expects MINLEN, MAXLEN, PERLEN, STEPLEN, SWEEP_NAME
@@ -24,20 +24,20 @@ done
 
 parampath=""
 if [ -z $SWEEP_NAME ];
-then parampath="--parampath ${SWEEP_NAME}.json";
-else SWEEP_NAME="default";
+then SWEEP_NAME="default";
+else parampath="--parampath ${SWEEP_NAME}.json";
 fi
 
+prefix=backbone_checkpoint
 targetdir=/scratch/users/alexechu/protpardelle_paper/samples/${prefix}_${MINLEN}_${MAXLEN}_${SWEEP_NAME}
 modelcheckpoint=/scratch/users/alexechu/protpardelle/checkpoints
-prefix=backbone_checkpoint
 
 
-echo "python draw_samples.py --model_checkpoint modelcheckpoint --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}"
-python draw_samples.py --model_checkpoint modelcheckpoint --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}
+echo "python draw_samples.py --model_checkpoint ${modelcheckpoint} --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}"
+python draw_samples.py --model_checkpoint ${modelcheckpoint} --type backbone --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} ${parampath}
 
 echo "sbatch eval_scripts/sc.sbatch ${targetdir} backbone"
 sbatch eval_scripts/sc.sbatch ${targetdir} backbone
 
-echo "sbatch eval_scripts/nov.sbatch ${targetdir} False"
-sbatch eval_scripts/nov.sbatch ${targetdir} False
+##echo "sbatch eval_scripts/nov.sbatch ${targetdir} False"
+##sbatch eval_scripts/nov.sbatch ${targetdir} False

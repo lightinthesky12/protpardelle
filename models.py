@@ -527,8 +527,7 @@ class Protpardelle(nn.Module):
             residue_index = residue_index.to(seq_mask) * seq_mask
         if use_fullmpnn or use_fullmpnn_for_final:
             fullmpnn_model = protein_mpnn.get_mpnn_model(
-                path_to_model_weights=self.config.train.home_dir
-                + "/ProteinMPNN/vanilla_model_weights",
+                path_to_model_weights="",
                 device=self.device,
             )
 
