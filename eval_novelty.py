@@ -30,7 +30,6 @@ class Manager(object):
         self.parser.add_argument("--missing", type=str, default='temp_missing_tm.txt', help="Dataset of samples to analyze")
         self.parser.add_argument("--task", type=str, required=True, help="Which task to run")
         self.parser.add_argument("--dataset", type=str, default='/scratch/users/alexechu/datasets/ingraham_cath_dataset',help="CATH dataset of coordinate files")
-        self.parser.add_argument("--num", type=int, default=0, help="Which pdb to work on")
         self.parser.add_argument("--offset", type=int, default=0, help="Which pdb to work on")
         self.parser.add_argument("--limit", type=int, default=10, help="Which pdb to work on")
 
@@ -81,8 +80,8 @@ def quick_tmalign(
 def generate_tm_pdb(pdb1, target_pdbs, output_path, metric, include_self=False):
     """Generate TM score and output highest k based on average TM score"""
     print(cpu_count())
+    print(pdb1)
     tms = Parallel(n_jobs=cpu_count(), backend='multiprocessing')(delayed(quick_tmalign)(pdb1, pdb2) for pdb2 in target_pdbs if (include_self or (pdb1 != pdb2)))
-    print(tms)
     tms.sort(key=lambda tup: tup['tm_score'], reverse=True)
 
     tm_name = os.path.basename(pdb1).strip('.pdb')
@@ -232,8 +231,9 @@ def main():
 
     if args.task == 'tm_score_self':
         all_pdbs = sorted(glob.glob(sample_dir+ '/*.pdb'))
-        pdb1 = all_pdbs[args.num]
-        generate_tm_pdb(pdb1, all_pdbs, tm_dir, "self")
+        search_pdbs = all_pdbs[args.offset:args.offset + args.limit]
+        for pdb in search_pdbs:
+            generate_tm_pdb(pdb, all_pdbs, tm_dir, "self")
     elif args.task == 'tm_score_dataset':
         dataset_path = args.dataset
         train_file = open(f"{dataset_path}/train_pdb_keys.list")
@@ -241,8 +241,9 @@ def main():
         dataset_pdbs = [f"{dataset_path}/pdb_store/{pdb_name}" for pdb_name in train_pdbs]
 
         all_pdbs = sorted(glob.glob(sample_dir + '/*.pdb'))
-        pdb1 = all_pdbs[args.num]
-        generate_tm_pdb(pdb1, dataset_pdbs, tm_dir, "dataset")
+        search_pdbs = all_pdbs[args.offset:args.offset + args.limit]
+        for pdb in search_pdbs:
+            generate_tm_pdb(pdb, dataset_pdbs, tm_dir, "dataset")
     # elif args.task == 'copy_nn':
     #     dataset_path = args.dataset
     #     all_tms = sorted(glob.glob(f"{tm_dir}/tm_score_max_*dataset.json"))
