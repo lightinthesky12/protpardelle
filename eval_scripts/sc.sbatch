@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
-#SBATCH --partition=gpu,bioe
+#SBATCH --partition=bioe
 ##SBATCH --nodelist=sh03-16n14
 #SBATCH --job-name=lc-sc
 #SBATCH --array=0-800:100%16

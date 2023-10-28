@@ -15,7 +15,6 @@ import statistics
 import os
 import argparse
 
-from evaluation import evaluate_sequence_design, predict_structures
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
