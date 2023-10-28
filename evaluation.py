@@ -11,6 +11,7 @@ import warnings
 from typing import Tuple
 
 from Bio.Align import substitution_matrices
+from colabdesign.af import mk_af_model
 import numpy as np
 import torch
 from transformers import AutoTokenizer, EsmForProteinFolding
@@ -89,13 +90,31 @@ def inference_esmfold(sequence_list, model, tokenizer):
     return pred_coords, plddts
 
 
-def predict_structures(sequences, model="esmfold", tokenizer=None, force_unk_to_X=True):
+def make_dummy_pdb(seq_len, pdb_path):
+    dummy_coords = torch.zeros(seq_len, 4, 3)
+    utils.write_coords_to_pdb(dummy_coords, pdb_path, batched=False)
+
+
+def inference_alphafold2(sequence_list, model, pdb_path_list):
+    pred_coords = []
+    plddts = []
+    for seq, pdb_path in zip(sequence_list, pdb_path_list):
+        model.prep_inputs(pdb_filename=pdb_path)
+        model.predict(seq=seq)
+        pred_coords.append(model.aux['atom_positions'])
+        plddts.append(model.aux['plddt'].mean())
+    return pred_coords, plddt
+
+
+def predict_structures(sequences, model="esmfold", tokenizer=None, pdb_paths=None, force_unk_to_X=True):
     # Expects seqs like 'MKRLLDS', not aatypes
     # model can be a model, or a string describing which pred model to load
     if isinstance(sequences, str):
         sequences = [sequences]
     if model == "esmfold":
         model = get_esmfold_model()
+    elif model == 'alphafold2':
+        model = mk_af_model()
     device = model.device
     if tokenizer is None:
         tokenizer = AutoTokenizer.from_pretrained("facebook/esmfold_v1")
@@ -105,6 +124,21 @@ def predict_structures(sequences, model="esmfold", tokenizer=None, force_unk_to_
     with torch.no_grad():
         if isinstance(model, EsmForProteinFolding):
             pred_coords, plddts = inference_esmfold(sequences, model, tokenizer)
+        elif isinstance(model, mk_af_model):
+            make_temp_pdbs = False
+            if pdb_paths is None or len(pdb_paths) != len(sequences):
+                make_temp_pdbs = True
+                pdb_paths = []
+                for seq in sequences:
+                    pdb_path = f'tmp_{torch.randint(10000, (1,)).item()}.pdb'
+                    pdb_paths.append(pdb_path)
+                    make_dummy_pdb(len(seq), pdb_path)
+
+            pred_coords, plddts = inference_alphafold2(sequences, model, pdb_paths)
+
+            if make_temp_pdbs:
+                for pdb_path in pdb_paths:
+                    os.system('rm' + pdb_path)
 
     seq_lens = [len(s) for s in sequences]
     trimmed_coords = [c[: seq_lens[i]] for i, c in enumerate(pred_coords)]

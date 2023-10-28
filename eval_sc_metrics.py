@@ -19,9 +19,9 @@ import argparse
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # fb alphafold
-esmfold = EsmForProteinFolding.from_pretrained("facebook/esmfold_v1").to(device)
-esmfold.esm = esmfold.esm.half()
-tokenizer = AutoTokenizer.from_pretrained("facebook/esmfold_v1")
+# esmfold = EsmForProteinFolding.from_pretrained("facebook/esmfold_v1").to(device)
+# esmfold.esm = esmfold.esm.half()
+# tokenizer = AutoTokenizer.from_pretrained("facebook/esmfold_v1")
 
 
 # seq prediction from structure
@@ -68,13 +68,13 @@ def mean(x):
     return sum(x) / len(x)
 
 
-def eval_backbone_generation(structure, output_file, num_seqs, mpnn_model=mpnn, struct_pred_model=esmfold):
+def eval_backbone_generation(structure, output_file, num_seqs, mpnn_model=mpnn, struct_pred_model="alphafold2"):
     # this takes generated protein structure, generates seq with mpnn, then generates structure with esm
     metrics, best_idx = evaluation.compute_self_consistency(
         comparison_structures=[structure],
         mpnn_model=mpnn_model,
         struct_pred_model=struct_pred_model,
-        tokenizer=tokenizer,
+        # tokenizer=tokenizer,
         num_seqs=num_seqs,
         metric="both",
         output_file=output_file
@@ -85,12 +85,12 @@ def eval_backbone_generation(structure, output_file, num_seqs, mpnn_model=mpnn, 
     return metrics
 
 
-def eval_allatom_backbone(structure, sequence, output_file, struct_pred_model=esmfold):
+def eval_allatom_backbone(structure, sequence, output_file, struct_pred_model="alphafold2"):
     sc_metrics, best_idx, aux = evaluation.compute_self_consistency(
         [structure],
         [sequence],
         struct_pred_model=struct_pred_model,
-        tokenizer=tokenizer,
+        # tokenizer=tokenizer,
         return_aux=True,
         metric="both",
         output_file=output_file
