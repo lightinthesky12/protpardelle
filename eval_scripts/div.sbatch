@@ -9,6 +9,7 @@
 
 
 module load gcc/12
+source activate delle
 
 targetdir=$1
 

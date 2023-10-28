@@ -30,7 +30,6 @@ class Manager(object):
         self.parser.add_argument("--missing", type=str, default='temp_missing_tm.txt', help="Dataset of samples to analyze")
         self.parser.add_argument("--task", type=str, required=True, help="Which task to run")
         self.parser.add_argument("--dataset", type=str, default='/scratch/users/alexechu/datasets/ingraham_cath_dataset',help="CATH dataset of coordinate files")
-        self.parser.add_argument("--k", type=int, default=10, help="Number of nearest neighbors")
         self.parser.add_argument("--num", type=int, default=0, help="Which pdb to work on")
         self.parser.add_argument("--offset", type=int, default=0, help="Which pdb to work on")
         self.parser.add_argument("--limit", type=int, default=10, help="Which pdb to work on")
@@ -79,46 +78,18 @@ def quick_tmalign(
     print(result)
     return result
 
-def generate_tm_pdb(pdb1, target_pdbs, output_path, k, metric, include_self=False):
+def generate_tm_pdb(pdb1, target_pdbs, output_path, metric, include_self=False):
     """Generate TM score and output highest k based on average TM score"""
     print(cpu_count())
     tms = Parallel(n_jobs=cpu_count(), backend='multiprocessing')(delayed(quick_tmalign)(pdb1, pdb2) for pdb2 in target_pdbs if (include_self or (pdb1 != pdb2)))
     print(tms)
     tms.sort(key=lambda tup: tup['tm_score'], reverse=True)
-    tm_scores = tms[:k]
-    tm_name = os.path.basename(pdb1).strip('.pdb')
-    json.dump(tm_scores, open(f"{output_path}/tm_score_avg_{tm_name}_{metric}.json", 'w'))
 
-    tms.sort(key=lambda tup: tup['maxtm'], reverse=True)
-    tm_scores = tms[:k]
     tm_name = os.path.basename(pdb1).strip('.pdb')
-    json.dump(tm_scores, open(f"{output_path}/tm_score_max_{tm_name}_{metric}.json", 'w'))
-
+    json.dump(tms, open(f"{output_path}/tm_scores_{tm_name}_{metric}.json", 'w'))
 
 def handler(signum, frame):
     raise Exception("Timeout")
-
-def quick_foldseek(
-    pdb1_path, output_path, dataset_dir, is_self=False
-):
-    pdb_name = os.path.basename(pdb1_path).split(".")[0]
-    # foldseek easy-search 2wglA00.pdb ../datasets/ingraham_cath_dataset/pdb_store/ aln.m8 ./tmp/ --alignment-type 1 --format-output "query,target,alntmscore,qtmscore,ttmscore,alnlen"
-    cmd = f'foldseek easy-search {pdb1_path} {dataset_dir} {output_path} ./fs_tmpdirs/tmp_{pdb_name}_{is_self} --alignment-type 1 --format-output "query,target,alntmscore,qtmscore,ttmscore,alnlen"'
-    print(cmd)
-    subprocess.run(shlex.split(cmd), capture_output=True, text=True)
-
-
-
-def foldseek(pdbs, output_path, dataset_dir, is_self):
-    """Generate TM score and output highest k based on average TM score"""
-    count = 0
-    total = len(pdbs)
-    for pdb in pdbs:
-        tm_name = os.path.basename(pdb).strip('.pdb')
-        if not os.path.exists(f"{output_path}/foldseek_{tm_name}.json"):
-            quick_foldseek(pdb, f"{output_path}/foldseek_{tm_name}.json", dataset_dir, is_self)
-        count = count + 1
-        print(f"Finished {count} of {total}")
 
 def parse_struct(pdb):
     """Parse the PDB structure into a BioPython-compatible object"""
@@ -262,7 +233,7 @@ def main():
     if args.task == 'tm_score_self':
         all_pdbs = sorted(glob.glob(sample_dir+ '/*.pdb'))
         pdb1 = all_pdbs[args.num]
-        generate_tm_pdb(pdb1, all_pdbs, tm_dir, args.k, "self")
+        generate_tm_pdb(pdb1, all_pdbs, tm_dir, "self")
     elif args.task == 'tm_score_dataset':
         dataset_path = args.dataset
         train_file = open(f"{dataset_path}/train_pdb_keys.list")
@@ -271,43 +242,7 @@ def main():
 
         all_pdbs = sorted(glob.glob(sample_dir + '/*.pdb'))
         pdb1 = all_pdbs[args.num]
-        generate_tm_pdb(pdb1, dataset_pdbs, tm_dir, args.k, "dataset")
-    if args.task == 'foldseek' or args.task == 'foldseek_self':
-        if "joint" in base_dir:
-            source_dir = sample_dir
-        else:
-            source_dir = f"{base_dir}/preds_structgen"
-
-        all_pdbs = sorted(glob.glob(source_dir + '/*.pdb'))
-        start_idx = args.offset
-        end_idx = args.offset + args.limit
-        pdbs = all_pdbs[start_idx:end_idx]
-
-        ftarget = source_dir if args.task == 'foldseek_self' else "foldseek_dbs/trainDB"
-        outputdir = foldseek_self_dir if args.task == 'foldseek_self' else foldseek_dir
-        foldseek(pdbs, outputdir, ftarget, args.task == 'foldseek_self')
-    elif args.task == 'parse_foldseek' or args.task == 'parse_foldseek_self':
-        fdir = foldseek_self_dir if args.task == 'parse_foldseek_self'  else foldseek_dir
-        all_raw = sorted(glob.glob(f"{fdir}/foldseek_*.json"))
-        start_idx = args.offset
-        end_idx = args.offset + args.limit
-        raws = all_raw[start_idx:end_idx]
-
-        k = args.k
-
-        for raw in raws:
-            tms = []
-
-            f = open(raw)
-            for line in f:
-                split = line.split()
-                tms.append({"pdb": split[1], "tm_score": float(split[2]), "tm1": float(split[3]), "tm2": float(split[4]), "alnlen": int(split[5])})
-
-            tms.sort(key=lambda tup: tup['tm_score'], reverse=True)
-            tm_scores = tms[:k]
-            output_filename = raw.replace("foldseek_len", "parsed_len")
-            print(output_filename)
-            json.dump(tm_scores, open(output_filename, 'w'))
+        generate_tm_pdb(pdb1, dataset_pdbs, tm_dir, "dataset")
     # elif args.task == 'copy_nn':
     #     dataset_path = args.dataset
     #     all_tms = sorted(glob.glob(f"{tm_dir}/tm_score_max_*dataset.json"))

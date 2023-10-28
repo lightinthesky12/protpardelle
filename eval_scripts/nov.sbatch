@@ -9,7 +9,7 @@
 
 module load gcc/12
 
-source activate folding
+source activate delle
 
 targetdir=$1
 allatom=$2
