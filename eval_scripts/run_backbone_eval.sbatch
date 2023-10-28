@@ -39,5 +39,9 @@ python draw_samples.py --model_checkpoint ${modelcheckpoint} --type backbone --p
 echo "sbatch eval_scripts/sc.sbatch ${targetdir} backbone"
 sbatch eval_scripts/sc.sbatch ${targetdir} backbone
 
+echo "sbatch eval_scripts/div.sbatch ${targetdir}"
+sbatch eval_scripts/div.sbatch ${targetdir}
+
+
 ##echo "sbatch eval_scripts/nov.sbatch ${targetdir} False"
 ##sbatch eval_scripts/nov.sbatch ${targetdir} False

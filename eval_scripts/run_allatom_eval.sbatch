@@ -8,22 +8,38 @@
 #SBATCH --job-name=aa_eval
 #SBATCH --output=/scratch/users/alexechu/protpardelle/slurms/%j.out
 
-source activate folding
+source activate delle
 
-minlen=050
-maxlen=400
-perlen=2
-steplen=1
-prefix=allatom_eval
-targetdir=../eval_results
-model_checkpoint=../checkpoints
-mpnnmodel=../checkpoints/minimpnn_state_dict.pth
+## expects MINLEN, MAXLEN, PERLEN, STEPLEN, SWEEP_NAME
+for ARGUMENT in "$@"
+do
+   KEY=$(echo $ARGUMENT | cut -f1 -d=)
 
-echo "python draw_samples.py --model_checkpoint ${model_checkpoint} --type allatom --perlen ${perlen} --minlen ${minlen} --maxlen ${maxlen} --steplen ${steplen} --targetdir ${targetdir}" --mpnnpath ${mpnnmodel}
+   KEY_LENGTH=${#KEY}
+   VALUE="${ARGUMENT:$KEY_LENGTH+1}"
+
+   export "$KEY"="$VALUE"
+done
+
+parampath=""
+if [ -z $SWEEP_NAME ];
+then SWEEP_NAME="default";
+else parampath="--parampath ${SWEEP_NAME}.json";
+fi
+
+prefix=allatom_checkpoint
+targetdir=/scratch/users/alexechu/protpardelle_paper/samples/${prefix}_${MINLEN}_${MAXLEN}_${SWEEP_NAME}
+modelcheckpoint=/scratch/users/alexechu/protpardelle/checkpoints
+mpnnmodel=/scratch/users/alexechu/protpardelle/checkpoints/minimpnn_state_dict.pth
+
+echo "python draw_samples.py --model_checkpoint ${modelcheckpoint} --type allatom --perlen ${perlen} --minlen ${minlen} --maxlen ${maxlen} --steplen ${steplen} --targetdir ${targetdir}" --mpnnpath ${mpnnmodel}
 python draw_samples.py  --model_checkpoint ${model_checkpoint} --type allatom --perlen ${perlen} --minlen ${minlen} --maxlen ${maxlen} --steplen ${steplen} --targetdir ${targetdir} --mpnnpath ${mpnnmodel}
 
 echo "sbatch eval_scripts/sc.sbatch ${targetdir} allatom"
 sbatch eval_scripts/sc.sbatch ${targetdir} allatom
+
+echo "sbatch eval_scripts/div.sbatch ${targetdir}"
+sbatch eval_scripts/div.sbatch ${targetdir}
 
 ##echo "sbatch eval_scripts/nov.sbatch ${targetdir} True"
 ##sbatch eval_scripts/nov.sbatch ${targetdir} True

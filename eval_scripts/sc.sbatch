@@ -7,7 +7,7 @@
 #SBATCH --partition=bioe
 ##SBATCH --nodelist=sh03-16n14
 #SBATCH --job-name=lc-sc
-#SBATCH --array=0-800:100%16
+#SBATCH --array=0-200:100%16
 #SBATCH --output=/scratch/users/alexechu/protpardelle/slurms/%j_sc.out
 
 source activate delle
