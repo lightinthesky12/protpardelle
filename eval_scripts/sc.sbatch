@@ -11,6 +11,7 @@
 #SBATCH --output=/scratch/users/alexechu/protpardelle/slurms/%j_sc.out
 
 source activate delle
+ml load cudnn/8.6
 
 targetdir=$1
 metric=$2
