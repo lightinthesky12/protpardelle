@@ -25,7 +25,7 @@ done
 parampath=""
 if [ -z $SWEEP_NAME ];
 then SWEEP_NAME="default";
-else parampath="--parampath ${SWEEP_NAME}.json";
+else parampath="--parampath sweeps/${SWEEP_NAME}.json";
 fi
 
 prefix=backbone_checkpoint

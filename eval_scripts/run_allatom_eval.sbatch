@@ -24,7 +24,7 @@ done
 parampath=""
 if [ -z $SWEEP_NAME ];
 then SWEEP_NAME="default";
-else parampath="--parampath ${SWEEP_NAME}.json";
+else parampath="--parampath sweeps/${SWEEP_NAME}.json";
 fi
 
 prefix=allatom_checkpoint
@@ -32,8 +32,8 @@ targetdir=/scratch/users/alexechu/protpardelle_paper/samples/${prefix}_${MINLEN}
 modelcheckpoint=/scratch/users/alexechu/protpardelle/checkpoints
 mpnnmodel=/scratch/users/alexechu/protpardelle/checkpoints/minimpnn_state_dict.pth
 
-echo "python draw_samples.py --model_checkpoint ${modelcheckpoint} --type allatom --perlen ${perlen} --minlen ${minlen} --maxlen ${maxlen} --steplen ${steplen} --targetdir ${targetdir}" --mpnnpath ${mpnnmodel}
-python draw_samples.py  --model_checkpoint ${model_checkpoint} --type allatom --perlen ${perlen} --minlen ${minlen} --maxlen ${maxlen} --steplen ${steplen} --targetdir ${targetdir} --mpnnpath ${mpnnmodel}
+echo "python draw_samples.py --model_checkpoint ${modelcheckpoint} --type allatom --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir}" --mpnnpath ${mpnnmodel}
+python draw_samples.py  --model_checkpoint ${modelcheckpoint} --type allatom --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} --mpnnpath ${mpnnmodel}
 
 echo "sbatch eval_scripts/sc.sbatch ${targetdir} allatom"
 sbatch eval_scripts/sc.sbatch ${targetdir} allatom
