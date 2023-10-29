@@ -111,6 +111,7 @@ def predict_structures(sequences, model="esmfold", tokenizer=None, pdb_paths=Non
     # model can be a model, or a string describing which pred model to load
     if isinstance(sequences, str):
         sequences = [sequences]
+
     if model == "esmfold":
         model = get_esmfold_model()
         device = model.device
@@ -137,6 +138,8 @@ def predict_structures(sequences, model="esmfold", tokenizer=None, pdb_paths=Non
                     make_dummy_pdb(len(seq), pdb_path)
 
             pred_coords, plddts = inference_alphafold2(sequences, model, pdb_paths)
+            pred_coords = [torch.Tensor(pc) for pc in pred_coords]
+            plddts = torch.Tensor(plddts)
 
             if make_temp_pdbs:
                 for pdb_path in pdb_paths:
@@ -144,10 +147,13 @@ def predict_structures(sequences, model="esmfold", tokenizer=None, pdb_paths=Non
 
     seq_lens = [len(s) for s in sequences]
     trimmed_coords = [c[: seq_lens[i]] for i, c in enumerate(pred_coords)]
-    trimmed_coords_atom37 = [
-        utils.atom37_coords_from_atom14(c, aatype[i])
-        for i, c in enumerate(trimmed_coords)
-    ]
+    if pred_coords[0].shape[-2] == 14:
+        trimmed_coords_atom37 = [
+            utils.atom37_coords_from_atom14(c, aatype[i])
+            for i, c in enumerate(trimmed_coords)
+        ]
+    else:
+        trimmed_coords_atom37 = trimmed_coords
     return trimmed_coords_atom37, plddts
 
 
