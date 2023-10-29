@@ -103,7 +103,7 @@ def inference_alphafold2(sequence_list, model, pdb_path_list):
         model.predict(seq=seq)
         pred_coords.append(model.aux['atom_positions'])
         plddts.append(model.aux['plddt'].mean())
-    return pred_coords, plddt
+    return pred_coords, plddts
 
 
 def predict_structures(sequences, model="esmfold", tokenizer=None, pdb_paths=None, force_unk_to_X=True):
@@ -113,9 +113,11 @@ def predict_structures(sequences, model="esmfold", tokenizer=None, pdb_paths=Non
         sequences = [sequences]
     if model == "esmfold":
         model = get_esmfold_model()
+        device = model.device
     elif model == 'alphafold2':
         model = mk_af_model()
-    device = model.device
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
     if tokenizer is None:
         tokenizer = AutoTokenizer.from_pretrained("facebook/esmfold_v1")
 
