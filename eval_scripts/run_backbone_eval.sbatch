@@ -28,7 +28,7 @@ else parampath="--parampath sweeps/${SWEEP_NAME}.json";
 fi
 
 prefix=backbone_checkpoint
-targetdir=/scratch/users/alexechu/protpardelle_paper/samples/${prefix}_${MINLEN}_${MAXLEN}_${SWEEP_NAME}
+targetdir=/scratch/users/alexechu/protpardelle_paper/samples/${prefix}_${MINLEN}_${MAXLEN}_${STEPLEN}_${SWEEP_NAME}
 modelcheckpoint=/scratch/users/alexechu/protpardelle/checkpoints
 
 
