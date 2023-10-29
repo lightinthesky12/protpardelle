@@ -32,8 +32,8 @@ targetdir=/scratch/users/alexechu/protpardelle_paper/samples/${prefix}_${MINLEN}
 modelcheckpoint=/scratch/users/alexechu/protpardelle/checkpoints
 mpnnmodel=/scratch/users/alexechu/protpardelle/checkpoints/minimpnn_state_dict.pth
 
-echo "python draw_samples.py --model_checkpoint ${modelcheckpoint} --type allatom --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir}" --mpnnpath ${mpnnmodel}
-python draw_samples.py  --model_checkpoint ${modelcheckpoint} --type allatom --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} --mpnnpath ${mpnnmodel}
+echo "python draw_samples.py --model_checkpoint ${modelcheckpoint} --type allatom --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir}" --mpnnpath ${mpnnmodel} ${parampath}
+python draw_samples.py  --model_checkpoint ${modelcheckpoint} --type allatom --perlen ${PERLEN} --minlen ${MINLEN} --maxlen ${MAXLEN} --steplen ${STEPLEN} --targetdir ${targetdir} --mpnnpath ${mpnnmodel} ${parampath}
 
 echo "sbatch eval_scripts/sc.sbatch ${targetdir} allatom"
 sbatch eval_scripts/sc.sbatch ${targetdir} allatom
