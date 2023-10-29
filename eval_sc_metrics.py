@@ -14,6 +14,7 @@ from collections import defaultdict
 import statistics
 import os
 import argparse
+from colabdesign.af import mk_af_model
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -68,7 +69,7 @@ def mean(x):
     return sum(x) / len(x)
 
 
-def eval_backbone_generation(structure, output_file, num_seqs, mpnn_model=mpnn, struct_pred_model="alphafold2"):
+def eval_backbone_generation(structure, output_file, num_seqs, mpnn_model=mpnn, struct_pred_model=mk_af_model()):
     # this takes generated protein structure, generates seq with mpnn, then generates structure with esm
     metrics, best_idx = evaluation.compute_self_consistency(
         comparison_structures=[structure],
@@ -85,7 +86,7 @@ def eval_backbone_generation(structure, output_file, num_seqs, mpnn_model=mpnn, 
     return metrics
 
 
-def eval_allatom_backbone(structure, sequence, output_file, struct_pred_model="alphafold2"):
+def eval_allatom_backbone(structure, sequence, output_file, struct_pred_model=mk_af_model()):
     sc_metrics, best_idx, aux = evaluation.compute_self_consistency(
         [structure],
         [sequence],

@@ -112,12 +112,12 @@ def predict_structures(sequences, model="esmfold", tokenizer=None, pdb_paths=Non
     if isinstance(sequences, str):
         sequences = [sequences]
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     if model == "esmfold":
         model = get_esmfold_model()
         device = model.device
     elif model == 'alphafold2':
         model = mk_af_model()
-        device = "cuda" if torch.cuda.is_available() else "cpu"
 
     if tokenizer is None:
         tokenizer = AutoTokenizer.from_pretrained("facebook/esmfold_v1")
@@ -143,7 +143,7 @@ def predict_structures(sequences, model="esmfold", tokenizer=None, pdb_paths=Non
 
             if make_temp_pdbs:
                 for pdb_path in pdb_paths:
-                    os.system('rm' + pdb_path)
+                    os.system('rm ' + pdb_path)
 
     seq_lens = [len(s) for s in sequences]
     trimmed_coords = [c[: seq_lens[i]] for i, c in enumerate(pred_coords)]
