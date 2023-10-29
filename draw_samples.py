@@ -263,7 +263,7 @@ def main():
 
     s_min = sampling_kwargs.pop("s_min", 0.001)
     s_max = sampling_kwargs.pop("s_max", 80)
-    sampling_kwargs["struct_noise_schedule"] = lambda t: diffusion.struct_noise_schedule(t, s_max=s_max, s_min=s_min)
+    sampling_kwargs["noise_schedule"] = lambda t: diffusion.noise_schedule(t, s_max=s_max, s_min=s_min)
 
     print("Base directory:", base_dir)
     save_dir = f"{base_dir}/samples"
