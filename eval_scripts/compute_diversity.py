@@ -12,9 +12,11 @@ result_type = "allatom" if is_allatom else "backbone"
 target_dir = sys.argv[1]
 tm_dir = f"{target_dir}/tms/"
 scores = defaultdict(lambda: {})
-for file in os.listdir(tm_dir):
-    f = open(tm_dir + file)
-    name = file.replace("tm_scores_", "").replace("_self.json", "")
+tm_files = sorted(glob.glob(f"{tm_dir}/*_samp*_self.json"))
+
+for file in tm_files:
+    f = open(file)
+    name = file.split("/")[-1].replace("tm_scores_", "").replace("_self.json", "")
     x = f.read()
     curr_scores = json.loads(x)
     for score in curr_scores:
