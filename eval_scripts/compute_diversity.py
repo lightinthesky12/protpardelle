@@ -65,4 +65,4 @@ for sc_score in sc_scores:
         if z['j_sc_rmsd_best'] < 2:
             count += 1
 
-print(target_dir, "SC", len(count)/len(total_count), len(count), len(total_count))
+print(target_dir, "SC", count/total_count, count, total_count)
