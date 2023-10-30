@@ -2,6 +2,11 @@ import sys
 import os
 import json
 from collections import defaultdict
+import glob
+
+is_allatom = sys.argv[2].lower() == 'true'
+
+result_type = "allatom" if is_allatom else "backbone"
 
 
 target_dir = sys.argv[1]
@@ -42,6 +47,22 @@ cluster_map = defaultdict(lambda: [])
 for idx, cluster in enumerate(clusters):
     cluster_map[int(cluster)].append(pdbs[idx])
 
-print(len(cluster_map)/len(pdbs), len(cluster_map), len(pdbs))
+print(target_dir, "DIV", len(cluster_map)/len(pdbs), len(cluster_map), len(pdbs))
 with open(f'{target_dir}/diversity.json', 'w') as f:
     f.write(json.dumps(cluster_map))
+
+
+sc_scores = sorted(glob.glob(f"{target_dir}/sc_metrics/{result_type}*_results.json"))
+count = 0
+total_count = 0
+for sc_score in sc_scores:
+    f = open(sc_score)
+    x = f.read()
+    y = json.loads(x)
+    for pdb in y:
+        total_count += 1
+        z = y[pdb]
+        if z['j_sc_rmsd_best'] < 2:
+            count += 1
+
+print(target_dir, "SC", len(count)/len(total_count), len(count), len(total_count))
